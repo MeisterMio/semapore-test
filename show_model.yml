@@ -5,15 +5,9 @@
   ignore_unreachable: yes
 
   tasks:
-    - name: Ping host
-      ansible.builtin.ping:
-      register: ping_result
-      ignore_errors: yes
-
     - name: Show hardware model number
       ansible.builtin.raw: ls /Status/Hardware-Info/Model-Number
       register: model_cmd
-      when: ping_result is succeeded
 
     - name: Output model number
       ansible.builtin.debug:
