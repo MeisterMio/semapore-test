@@ -1,6 +1,6 @@
 ---
 - name: Ping ISS hosts and show model number
-  hosts: ISS
+  hosts: ISSDB150
   gather_facts: no
   ignore_unreachable: yes
 
