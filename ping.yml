@@ -1,6 +1,6 @@
 ---
 - name: Verify connectivity to all hosts
- hosts: all
+ hosts: ISSDB
  tasks:
    - name: Ping all nodes
      ansible.builtin.ping:
