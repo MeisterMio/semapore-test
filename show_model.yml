@@ -1,6 +1,6 @@
 ---
 - name: Ping ISS hosts and show model number
-  hosts: ISSDB150
+  hosts: ISS
   gather_facts: no
   ignore_unreachable: yes
 
@@ -18,4 +18,7 @@
     - name: Output model number
       ansible.builtin.debug:
         msg: "{{ model_cmd.stdout | trim }}"
-      when: model_cmd is defined and model_cmd.rc == 0
+      when:
+        - model_cmd is defined
+        - model_cmd.stdout is defined
+        - model_cmd.stdout | trim != ""
