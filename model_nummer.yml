@@ -1,0 +1,21 @@
+---
+- name: Ping ISS hosts and read model number
+  hosts: ISSDB
+  gather_facts: no
+  ignore_unreachable: yes
+
+  tasks:
+    - name: Ping host
+      ansible.builtin.ping:
+      register: ping_result
+      ignore_errors: yes
+
+    - name: Read hardware model number
+      ansible.builtin.raw: ls /Status/Hardware-Info/Model-Number
+      register: model_cmd
+      when: ping_result is succeeded
+
+    - name: Store model number as host variable
+      ansible.builtin.set_fact:
+        hardware_model_number: "{{ model_cmd.stdout | trim }}"
+      when: model_cmd is defined and model_cmd.rc == 0
