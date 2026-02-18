@@ -1,7 +1,53 @@
 ---
-- name: get all VPN Names
+- name: Collect LANCOM hardware information
   hosts: all
   gather_facts: no
   ignore_unreachable: yes
-  - task
-  
+
+  tasks:
+    - name: Ping host
+      ansible.builtin.ping:
+      register: ping_result
+      ignore_errors: yes
+
+    - name: Read device status
+      ansible.builtin.raw: sysinfo
+      register: status_cmd
+      when: ping_result is succeeded
+
+    - name: Split output into lines
+      ansible.builtin.set_fact:
+        status_lines: "{{ status_cmd.stdout.splitlines() }}"
+      when: status_cmd is defined and status_cmd.stdout is defined
+
+    - name: Build status dictionary
+      ansible.builtin.set_fact:
+        lancom_status: >-
+          {{
+            lancom_status | default({}) |
+            combine({
+              (item.split(':', 1)[0] | trim | lower | replace('-', '_')):
+              (item.split(':', 1)[1] | trim)
+            })
+          }}
+      loop: "{{ status_lines }}"
+      when:
+        - item is search(':')
+        - status_lines is defined
+
+    - name: Set selected host facts
+      ansible.builtin.set_fact:
+        lancom_device: "{{ lancom_status.device | default('') }}"
+        lancom_serial: "{{ lancom_status.serial_number | default('') }}"
+        lancom_ip: "{{ lancom_status.ip_address | default('') }}"
+        lancom_name: "{{ lancom_status.name | default('') }}"
+      when: lancom_status is defined
+
+    - name: Show result in Semaphore output
+      ansible.builtin.debug:
+        msg:
+          host: "{{ inventory_hostname }}"
+          device: "{{ lancom_device }}"
+          serial: "{{ lancom_serial }}"
+          ip: "{{ lancom_ip }}"
+          name: "{{ lancom_name }}"
